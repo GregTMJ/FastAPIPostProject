@@ -1,6 +1,8 @@
 """
 Handle database queries
 """
+import sqlalchemy.exc
+
 from security import get_password_hash
 from sqlalchemy.orm import Session
 import models
@@ -14,7 +16,7 @@ def get_author(db: Session, author_id: int):
     :param author_id: stores the given id
     :return: first query from Author's table with the same given author's id
     """
-    return db.query(models.Authors).filter(models.Authors.id == author_id).first()
+    return db.query(models.Authors).filter(models.Authors.id == author_id).one_or_none()
 
 
 def get_author_by_username(db: Session, username: str):
@@ -24,7 +26,7 @@ def get_author_by_username(db: Session, username: str):
     :param username: stores the given username
     :return: first query from Author's table with the same given author's username
     """
-    return db.query(models.Authors).filter(models.Authors.username == username).first()
+    return db.query(models.Authors).filter(models.Authors.username == username).one_or_none()
 
 
 def get_authors(db: Session, skip: int = 0, limit: int = 10):
@@ -60,7 +62,7 @@ def get_post(db: Session, post_id: int):
     :param post_id: stores the post's id
     :return: a single query where the post's id matches a Post_id in the db
     """
-    return db.query(models.Posts).filter(models.Posts.id == post_id).one()
+    return db.query(models.Posts).filter(models.Posts.id == post_id).one_or_none()
 
 
 def get_posts(db: Session, skip: int = 0, limit: int = 10):

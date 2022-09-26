@@ -125,7 +125,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "Bearer"}
 
 
-@app.get("/authors/", response_model=list[schemas.Author])
+@app.get("/authors/", response_model=list[schemas.Author], status_code=status.HTTP_200_OK)
 async def read_authors(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     """
     Get a list of authors
@@ -138,7 +138,7 @@ async def read_authors(skip: int = 0, limit: int = 10, db: Session = Depends(get
     return authors
 
 
-@app.post("/authors/", response_model=schemas.Author)
+@app.post("/authors/", response_model=schemas.Author, response_model_exclude_unset=True)
 async def create_author(author: schemas.AuthorCreate, db: Session = Depends(get_db)):
     """
     Create a new author
@@ -162,7 +162,9 @@ async def read_author(author_id: int, db: Session = Depends(get_db)):
     :return: the author if found in the database
     """
     author = crud.get_author(db, author_id)
-    return author
+    if author:
+        return author
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Author not found!")
 
 
 @app.get("/posts/", response_model=list[schemas.Post])
@@ -178,7 +180,7 @@ async def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_d
     return posts
 
 
-@app.get("/posts/{post_id}", response_model=schemas.Post)
+@app.get("/posts/{post_id}", response_model=schemas.Post, response_model_exclude_unset=True)
 async def read_post(post_id: int, db: Session = Depends(get_db)):
     """
     Gets a single post by id
@@ -187,6 +189,8 @@ async def read_post(post_id: int, db: Session = Depends(get_db)):
     :return: if found, the post with the given id
     """
     post = crud.get_post(db=db, post_id=post_id)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Post not found!')
     return post
 
 
@@ -208,7 +212,7 @@ async def create_post(author_id: int, post: schemas.PostCreate, db: Session = De
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have no permissions")
 
 
-@app.get("/article/{article_id}", response_class=HTMLResponse)
+@app.get("/article/{article_id}", response_class=HTMLResponse, response_model_exclude_unset=True)
 async def read_article(request: Request, article_id: int, db: Session = Depends(get_db)):
     """
     HTML representation of a post
